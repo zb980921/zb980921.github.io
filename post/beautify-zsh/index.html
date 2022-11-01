@@ -1,0 +1,299 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>zsh美化教程 | ZhuBei&#39;s Blog</title>
+<link rel="shortcut icon" href="https://zb980921.github.io/favicon.ico?v=1667284745178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://zb980921.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="zsh美化教程 | ZhuBei&#39;s Blog - Atom Feed" href="https://zb980921.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="
+本文参考了少数派的文章：iTerm2 配置和美化 ，感谢！
+多一句：iTerm2 可以不用了，强烈推荐 21 世纪的强大终端 Warp ，用了都说好！
+
+身边好多同事都换了 Macbook，在这里写一篇 zsh 美化教程，方便他人，同时也..." />
+    <meta name="keywords" content="环境配置" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://zb980921.github.io">
+  <img class="avatar" src="https://zb980921.github.io/images/avatar.png?v=1667284745178" alt="">
+  </a>
+  <h1 class="site-title">
+    ZhuBei&#39;s Blog
+  </h1>
+  <p class="site-description">
+    Keep coding, keep learning.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              zsh美化教程
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-26
+              </span>
+              <span>
+                4 min read
+              </span>
+              
+                <a href="https://zb980921.github.io/tag/environment/" class="post-tag">
+                  # 环境配置
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <blockquote>
+<p>本文参考了少数派的文章：<a href="https://sspai.com/post/63241" target="_blank">iTerm2 配置和美化</a> ，感谢！</p>
+<p>多一句：iTerm2 可以不用了，强烈推荐 21 世纪的强大终端 <a href="https://warp.dev" target="_blank">Warp</a> ，用了都说好！</p>
+</blockquote>
+<p>身边好多同事都换了 Macbook，在这里写一篇 zsh 美化教程，方便他人，同时也方便自己。</p>
+<p>本文的所有操作都使用了 🪜 作为辅助，否则会遇到很多网络问题。</p>
+<p>所有的安装步骤都在当前用户目录下进行，使用 <code>pwd</code> 命令进行检查，如果输出的不是 <code>/Users/xxx</code> ，使用 <code>cd ~</code> 进行切换后继续。</p>
+<p>安装 <code>autojump</code> 插件之前，需要安装 Homebrew ，未安装的小伙伴可以输入以下命令进行安装：</p>
+<pre><code class="language-bash">/bin/zsh -c &quot;$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)&quot;
+</code></pre>
+<p>安装过程会提示你输入密码，正常输入即可；提示选择镜像源时默认选 <code>中科大</code> 就行。</p>
+<h2 id="一-安装-oh-my-zsh">一、安装 Oh My Zsh</h2>
+<blockquote>
+<p>问：什么是 <code>Oh My Zsh</code> ？</p>
+<p>答：<code>Oh My Zsh</code> 是一款社区驱动的命令行工具，它基于 zsh 命令行，提供了主题配置，插件机制，大大提高了可玩（用）性，提升效率的同时还能使人心情愉悦~</p>
+</blockquote>
+<p>有两种安装方式：</p>
+<ul>
+<li>
+<p>curl</p>
+<pre><code class="language-bash">sh -c &quot;$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)&quot;
+</code></pre>
+</li>
+<li>
+<p>wget</p>
+<pre><code class="language-bash">sh -c &quot;$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)&quot;
+</code></pre>
+</li>
+</ul>
+<p>安装完毕后，会将用户目录下的 <code>.zshrc</code> 文件替换为 <code>oh-my-zsh</code> 自带的默认内容，之前的文件内容被放进了 <code>.zshrc.pre-oh-my-zsh</code> 里面，如果需要同步内容，在 <code>.zshrc</code> 文件最底部，输入 <code>source ~/.zshrc.pre-oh-my-zsh</code> ，重新进入终端即可。</p>
+<h2 id="二-主题">二、主题</h2>
+<p>本文使用的主题是 spaceship 。</p>
+<h3 id="1-安装">1. 安装</h3>
+<ul>
+<li>
+<p>下载主题文件</p>
+<pre><code class="language-bash">git clone https://github.com/denysdovhan/spaceship-prompt.git &quot;$ZSH_CUSTOM/themes/spaceship-prompt&quot; --depth=1
+</code></pre>
+</li>
+<li>
+<p>创建软链接</p>
+<pre><code class="language-bash">ln -s &quot;$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme&quot; &quot;$ZSH_CUSTOM/themes/spaceship.zsh-theme&quot;
+</code></pre>
+</li>
+<li>
+<p>修改 <code>.zshrc</code></p>
+<ul>
+<li>将 <code>ZSH_THEME</code> 变量的值修改成 <code>spaceship</code></li>
+<li>另起一行，输入 <code>SPACESHIP_TIME_SHOW=&quot;true&quot;</code> ，显示时间</li>
+<li>另起一行，输入 <code>SPACESHIP_USER_SHOW=&quot;always&quot;</code> ，显示用户名</li>
+<li>另起一行，输入 <code>SPACESHIP_USER_COLOR=&quot;212&quot;</code> ，猛男粉配色</li>
+</ul>
+</li>
+</ul>
+<p>效果如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://s2.loli.net/2022/07/26/PtCQ1vwhcUyfRN9.png" alt="image.png" loading="lazy"></figure>
+<h2 id="三-配置插件">三、配置插件</h2>
+<p><code>oh-my-zsh</code> 默认为我们集成了 <code>git</code> 插件，这里我们多安装两个插件，赋予终端更强大的功能。</p>
+<h3 id="1-autojump">1. autojump</h3>
+<blockquote>
+<p>这个插件会根据你输入的关键字进行目录联想，假设在某一时刻进入过 <code>~/work/test</code> 目录。当你在终端输入 <code>j te</code> 时，插件会进行联想，匹配到 <code>~/work/test</code> 目录，然后进入。</p>
+<p>如果没匹配到，则停留在当前目录。</p>
+</blockquote>
+<ul>
+<li>
+<p>安装</p>
+<pre><code class="language-bash">brew install autojump
+</code></pre>
+</li>
+<li>
+<p>修改 <code>.zshrc</code> ，在尾部添加内容：</p>
+<pre><code class="language-bash">[ -f /opt/homebrew/etc/profile.d/autojump.sh ] &amp;&amp; . /opt/homebrew/etc/profile.d/autojump.sh
+</code></pre>
+</li>
+<li>
+<p>在 <code>plugins</code> 中添加 <code>autojump</code></p>
+</li>
+</ul>
+<h3 id="2-zsh-autosuggestions">2. zsh-autosuggestions</h3>
+<blockquote>
+<p>当我们输入命令过程中，终端会自动提示你接下来可能要输入的命令，这时按下方向右键 <code>→</code> 便可输出这些命令，非常方便。</p>
+</blockquote>
+<ul>
+<li>
+<p>克隆项目</p>
+<pre><code class="language-bash">git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+</code></pre>
+</li>
+<li>
+<p>编辑 <code>.zshrc</code> ，将 <code>zsh-autosuggestions</code> 添加到 <code>plugins</code> 中</p>
+</li>
+<li>
+<p>重新进入终端</p>
+</li>
+</ul>
+<blockquote>
+<p>📢</p>
+<p>这些操作执行完毕后，<code>.zshrc</code> 中的 <code>plugins</code> 应该多了两个。</p>
+<p>现在，<code>plugins</code> 看起来应该是这样的：</p>
+<pre><code class="language-bash">plugins=(
+  git
+  zsh-autosuggestions
+  autojump
+)
+</code></pre>
+</blockquote>
+<h2 id="四-总结">四、总结</h2>
+<p>开始装逼吧 😎</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E4%B8%80-%E5%AE%89%E8%A3%85-oh-my-zsh">一、安装 Oh My Zsh</a></li>
+<li><a href="#%E4%BA%8C-%E4%B8%BB%E9%A2%98">二、主题</a>
+<ul>
+<li><a href="#1-%E5%AE%89%E8%A3%85">1. 安装</a></li>
+</ul>
+</li>
+<li><a href="#%E4%B8%89-%E9%85%8D%E7%BD%AE%E6%8F%92%E4%BB%B6">三、配置插件</a>
+<ul>
+<li><a href="#1-autojump">1. autojump</a></li>
+<li><a href="#2-zsh-autosuggestions">2. zsh-autosuggestions</a></li>
+</ul>
+</li>
+<li><a href="#%E5%9B%9B-%E6%80%BB%E7%BB%93">四、总结</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://zb980921.github.io/post/ts-handbook-1/">
+              <h3 class="post-title">
+                TS手册（一）
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <span><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 2022-PRESENT © ZhuBei <a target="_blank" href="https://beian.miit.gov.cn/" style="margin-left: 10px;">苏ICP备2022011776号-1</a></span>
+  <a class="rss" href="https://zb980921.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

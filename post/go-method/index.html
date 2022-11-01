@@ -1,0 +1,341 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>方法 | ZhuBei&#39;s Blog</title>
+<link rel="shortcut icon" href="https://zb980921.github.io/favicon.ico?v=1667284745178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://zb980921.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="方法 | ZhuBei&#39;s Blog - Atom Feed" href="https://zb980921.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="Go 没有类。但是你可以为结构体类型定义方法。
+方法就是一类带特殊的 接收者 参数的函数。
+方法接收者写在 func 关键字和方法名之间：
+type Point struct {
+	X, Y float64
+}
+
+// p 是 Abs 方法..." />
+    <meta name="keywords" content="go基础" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://zb980921.github.io">
+  <img class="avatar" src="https://zb980921.github.io/images/avatar.png?v=1667284745178" alt="">
+  </a>
+  <h1 class="site-title">
+    ZhuBei&#39;s Blog
+  </h1>
+  <p class="site-description">
+    Keep coding, keep learning.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              方法
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-08-16
+              </span>
+              <span>
+                5 min read
+              </span>
+              
+                <a href="https://zb980921.github.io/tag/basic-go/" class="post-tag">
+                  # go基础
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>Go 没有类。但是你可以为结构体类型定义方法。</p>
+<p>方法就是一类带特殊的 <strong>接收者</strong> 参数的函数。</p>
+<p>方法接收者写在 <code>func</code> 关键字和方法名之间：</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+// p 是 Abs 方法的接收者
+func (p Point) Abs() float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func main() {
+	v := Point{3, 4}
+	fmt.Println(v.Abs()) // 5
+}
+</code></pre>
+<h2 id="方法即函数">方法即函数</h2>
+<p>记住：方法只是个带接收者参数的函数。</p>
+<p>下面这个 <code>Abs</code> 的写法就是个普通的函数，功能并没有什么变化：</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func Abs(p Point) float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func main() {
+	v := Point{3, 4}
+	fmt.Println(Abs(v))
+}
+</code></pre>
+<h2 id="非结构体的方法">非结构体的方法</h2>
+<p>你也可以为非结构体类型声明方法：</p>
+<pre><code class="language-go">type MyFloat float64
+
+func (f MyFloat) Abs() float64 {
+	if f &lt; 0 {
+		return float64(-f)
+	}
+	return float64(f)
+}
+
+func main() {
+	f := MyFloat(-math.Sqrt(2))
+	fmt.Println(f.Abs())
+}
+</code></pre>
+<blockquote>
+<p>注意：</p>
+<ul>
+<li>接收者的类型定义和方法声明必须在同一包内；</li>
+<li>不能为内建类型声明方法。</li>
+</ul>
+</blockquote>
+<h2 id="指针接收者">指针接收者</h2>
+<p>你可以为指针接收者声明方法。这意味着对于某类型 <code>T</code> ，接收者的类型可以用 <code>*T</code> 的文法（<code>T</code> 不能是像 <code>*int</code> 这样的指针）。</p>
+<p>指针接收者的方法可以修改接收者指向的值（比如下面代码的 <code>Scale</code> 方法）。</p>
+<p>由于方法经常需要修改它的接收者，指针接收者比值接收者更常用。</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func (p Point) Abs() float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func (p *Point) Scale(f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func main() {
+	p := Point{3, 4}
+	fmt.Println(p.Abs()) // 5
+	p.Scale(10)
+	fmt.Println(p.Abs()) // 50
+}
+</code></pre>
+<p>如果使用值接收者（移除 <code>Scale</code> 方法的 <code>*</code>），那么 <code>Scale</code> 方法会对原始 <code>Point</code> 值的副本进行操作。因此，<code>Scale</code> 方法必须使用指针接收者来更改 <code>main</code> 函数中声明的 <code>Point</code> 的值。</p>
+<h2 id="方法与指针重定向">方法与指针重定向</h2>
+<p>以指针为接收者的方法被调用时，接收者既能为值又能为指针：</p>
+<pre><code class="language-go">var p Point
+p.Scale(5) // ok
+ptr := &amp;p
+ptr.Scale(10) // ok
+</code></pre>
+<p>对于语句 <code>p.Scale(5)</code> ，即便 <code>p</code> 是个值而非指针，带指针接收者的方法也能被直接调用。</p>
+<p>由于 <code>Scale</code> 方法有一个指针接收者，为方便起见，Go 会将语句 <code>p.Scale(5)</code> 解释为 <code>(&amp;p).Scale(5)</code> 。</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func (p *Point) Scale(f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func ScaleFn(p *Point, f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func main() {
+	p1 := Point{3, 4}
+    p1.Scale(2) // 解释为 (&amp;p1).Scale(2)
+	ScaleFn(&amp;p1, 5)
+	fmt.Println(p1) // {30 40}
+
+	p2 := &amp;Point{30, 40}
+	p2.Scale(0.2)
+	ScaleFn(p2, 0.5)
+	fmt.Println(*p2) // {3 4}
+}
+</code></pre>
+<p>同样的事情也发生在相反的方向。</p>
+<p>接收一个值作为参数的函数必须接收一个指定类型的值：</p>
+<pre><code class="language-go">type Vertex struct {
+	X, Y float64
+}
+
+func (v *Vertex) Abs() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func AbsFn(v Vertex) float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func main() {
+    var v Vertex
+    AbsFn(v) // ok
+    AbsFn(&amp;v) // 编译错误！
+}
+</code></pre>
+<p>而以值为接收者的方法被调用时，接收者既能为值又能为指针：</p>
+<pre><code class="language-go">// 该方法以值作为接收者
+func (v Vertex) Abs() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func main() {
+	v := Vertex{30, 40}
+	fmt.Println(v.Abs()) // 50
+	ptr := &amp;v
+    fmt.Println(ptr.Abs()) // 50, 被解释为 (*pt).Abs()
+}
+</code></pre>
+<h2 id="选择值或指针作为接收者">选择值或指针作为接收者</h2>
+<p>使用指针作为接收值的原因：</p>
+<ul>
+<li>方法能够修改其接收者指向的值</li>
+<li>避免在每次调用方法时复制该值。若值的类型为大型结构体时，这样做会更加高效。</li>
+</ul>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%96%B9%E6%B3%95%E5%8D%B3%E5%87%BD%E6%95%B0">方法即函数</a></li>
+<li><a href="#%E9%9D%9E%E7%BB%93%E6%9E%84%E4%BD%93%E7%9A%84%E6%96%B9%E6%B3%95">非结构体的方法</a></li>
+<li><a href="#%E6%8C%87%E9%92%88%E6%8E%A5%E6%94%B6%E8%80%85">指针接收者</a></li>
+<li><a href="#%E6%96%B9%E6%B3%95%E4%B8%8E%E6%8C%87%E9%92%88%E9%87%8D%E5%AE%9A%E5%90%91">方法与指针重定向</a></li>
+<li><a href="#%E9%80%89%E6%8B%A9%E5%80%BC%E6%88%96%E6%8C%87%E9%92%88%E4%BD%9C%E4%B8%BA%E6%8E%A5%E6%94%B6%E8%80%85">选择值或指针作为接收者</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://zb980921.github.io/post/go-array-and-slice/">
+              <h3 class="post-title">
+                切片和数组
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <span><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 2022-PRESENT © ZhuBei <a target="_blank" href="https://beian.miit.gov.cn/" style="margin-left: 10px;">苏ICP备2022011776号-1</a></span>
+  <a class="rss" href="https://zb980921.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

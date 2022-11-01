@@ -1,0 +1,212 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TS手册（一） | ZhuBei&#39;s Blog</title>
+<link rel="shortcut icon" href="https://zb980921.github.io/favicon.ico?v=1667284745178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://zb980921.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="TS手册（一） | ZhuBei&#39;s Blog - Atom Feed" href="https://zb980921.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="欢迎来到第一章！
+前言
+在第一章的开始，请思考以下代码：
+message.toLowerCase();
+message();
+
+我们将上述代码进行拆分，可以拆成两步：
+
+访问 message 上的 toLowerCase 属性，并调用
+直接..." />
+    <meta name="keywords" content="TS Handbook,TypeScript" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://zb980921.github.io">
+  <img class="avatar" src="https://zb980921.github.io/images/avatar.png?v=1667284745178" alt="">
+  </a>
+  <h1 class="site-title">
+    ZhuBei&#39;s Blog
+  </h1>
+  <p class="site-description">
+    Keep coding, keep learning.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              TS手册（一）
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-07-26
+              </span>
+              <span>
+                2 min read
+              </span>
+              
+                <a href="https://zb980921.github.io/tag/lieycuZfQ/" class="post-tag">
+                  # TS Handbook
+                </a>
+              
+                <a href="https://zb980921.github.io/tag/ts/" class="post-tag">
+                  # TypeScript
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p>欢迎来到第一章！</p>
+<h2 id="前言">前言</h2>
+<p>在第一章的开始，请思考以下代码：</p>
+<pre><code class="language-javascript">message.toLowerCase();
+message();
+</code></pre>
+<p>我们将上述代码进行拆分，可以拆成两步：</p>
+<ol>
+<li>访问 <code>message</code> 上的 <code>toLowerCase</code> 属性，并调用</li>
+<li>直接调用 <code>message</code></li>
+</ol>
+<p>问题来了，大多数情况下我们不知道 <code>message</code> 的值是什么，因此不能确定上面两行代码每次执行的结果。关于上面的步骤，有以下几个问题需要讨论：</p>
+<ul>
+<li><code>message</code> 是可调用的吗？</li>
+<li><code>message</code> 上有没有一个叫作 <code>toLowerCase</code> 的属性？</li>
+<li>如果存在该属性，那么 <code>toLowerCase</code> 是可调用的吗？</li>
+<li>如果都是可调用的，那么调用它们的返回值是什么呢？</li>
+</ul>
+<p>当书写 JavaScript 代码时，上面几个问题需要我们时刻注意，否则一不小心就会导致运行时的 Error。</p>
+<p>例如：给 <code>message</code> 赋一个字符串的值</p>
+<pre><code class="language-javascript">message = &quot;Hello, World!&quot;
+</code></pre>
+<p>现在运行最开始的两行代码，学过 JavaScript 的都知道，每一个字符串都有 <code>toLowerCase</code> 方法，因此第一行代码正常执行，返回值为 <code>hello, world!</code>。</p>
+<p>但是，当执行到第二行代码的时候，问题来了，<code>message</code> 是一个字符串，压根不是一个函数，因此第二行代码执行时将会得到一个 Error：<code>TypeError: message is not a function</code>。</p>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E5%89%8D%E8%A8%80">前言</a></li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://zb980921.github.io/post/about/">
+              <h3 class="post-title">
+                关于
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <span><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 2022-PRESENT © ZhuBei <a target="_blank" href="https://beian.miit.gov.cn/" style="margin-left: 10px;">苏ICP备2022011776号-1</a></span>
+  <a class="rss" href="https://zb980921.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

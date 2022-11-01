@@ -1,0 +1,484 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>接口 | ZhuBei&#39;s Blog</title>
+<link rel="shortcut icon" href="https://zb980921.github.io/favicon.ico?v=1667284745178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://zb980921.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="接口 | ZhuBei&#39;s Blog - Atom Feed" href="https://zb980921.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="接口类型 是由一组方法签名定义的集合。
+接口类型的变量可以保存任何实现了这些方法的值。
+type MyFloat float64
+
+// MyFloat 的 Abs 方法
+func (f MyFloat) Abs() float64 {
+	..." />
+    <meta name="keywords" content="go基础" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://zb980921.github.io">
+  <img class="avatar" src="https://zb980921.github.io/images/avatar.png?v=1667284745178" alt="">
+  </a>
+  <h1 class="site-title">
+    ZhuBei&#39;s Blog
+  </h1>
+  <p class="site-description">
+    Keep coding, keep learning.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              接口
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-08-17
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://zb980921.github.io/tag/basic-go/" class="post-tag">
+                  # go基础
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <p><strong>接口类型</strong> 是由一组方法签名定义的集合。</p>
+<p>接口类型的变量可以保存任何实现了这些方法的值。</p>
+<pre><code class="language-go">type MyFloat float64
+
+// MyFloat 的 Abs 方法
+func (f MyFloat) Abs() float64 {
+	if f &lt; 0 {
+		return float64(-f)
+	}
+	return float64(f)
+}
+
+// 接口声明
+type Abser interface {
+	Abs() float64
+}
+
+func main() {
+	var a Abser
+	f := MyFloat(-math.Sqrt2)
+	a = f // 因为 MyFloat 实现了 Abs 方法，所以 f 可以赋值给 a
+	fmt.Println(a) // -1.4142135623730951
+}
+</code></pre>
+<h2 id="接口与隐式实现">接口与隐式实现</h2>
+<p>类型通过实现一个接口的所有方法来实现该接口。</p>
+<p>隐式接口从接口的实现中解耦了定义，这样接口的实现可以出现在任何包中，无需提前准备。</p>
+<p>因此，也就无需在每一个实现上增加新的接口名称，这样同时也鼓励了明确的接口定义。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+// 此方法表示类型 T 实现了接口 I (即 T 拥有 M 方法)，但我们无需声明
+func (t T) M() {
+	fmt.Println(t)
+}
+
+func main() {
+	var i I = T{&quot;Hello, world!&quot;}
+	i.M()
+}
+</code></pre>
+<h2 id="接口值">接口值</h2>
+<p>接口也是值。它们可以像其它值一样传递。</p>
+<p>接口值可以用作函数的参数或返回值。</p>
+<p>在内部，接口值可以看做包含值和具体类型的元组：<code>(value, type)</code> 。</p>
+<p>接口值保存了一个具体底层类型的具体值。</p>
+<p>接口值调用方法时会执行其底层类型的同名方法。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+// 注意：这里使用了指针作为接收者
+func (t *T) M() {
+	fmt.Println(t.S)
+}
+
+type F float64
+
+func (f F) M() {
+	fmt.Println(f)
+}
+
+func main() {
+	var i I = &amp;T{&quot;Hello&quot;} // 这里必须写指针，因为上面使用了指针接收者来实现 M 方法
+	describe(i)
+
+	i = F(math.Pi)
+	describe(i)
+}
+
+func describe(i I) {
+	i.M() // 传入不同类型的值，执行对应的 M 方法
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<h2 id="底层值为-nil-的接口值">底层值为 <code>nil</code> 的接口值</h2>
+<p>即便接口内的具体值为 <code>nil</code> ，方法仍然会被 <code>nil</code> 接收者调用，在一些语言中，这会触发一个空指针异常，但在 Go 中通常会写一些方法来优雅地处理它。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+func (t *T) M() {
+	if t == nil {
+		fmt.Println(&quot;&lt;nil&gt;&quot;)
+		return
+	}
+	fmt.Println(t.S)
+}
+
+func main() {
+	var i I
+	var t *T
+	i = t
+	describe(i) // (&lt;nil&gt;, *main.T)
+    i.M()
+
+	i = &amp;T{&quot;Hello, world!&quot;}
+    describe(i) // (&amp;{Hello, world!}, *main.T)
+    i.M()
+}
+
+func describe(i I) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<blockquote>
+<p>注意：</p>
+<p>保存了 <code>nil</code> 具体值的接口，其自身并不为 <code>nil</code> 。</p>
+</blockquote>
+<h2 id="nil-接口值"><code>nil</code> 接口值</h2>
+<p><code>nil</code> 接口值既不保存值也不保存具体类型。</p>
+<p>为 <code>nil</code> 接口调用方法会产生运行时错误，因为接口的元组内并未包含能够指明该调用哪个 <strong>具体</strong> 方法的类型。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+func main() {
+	var i I
+	describe(i)
+	i.M() // runtime error: invalid memory address or nil pointer dereference
+}
+
+func describe(i I) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i) // (&lt;nil&gt;, &lt;nil&gt;)
+}
+</code></pre>
+<h2 id="空接口">空接口</h2>
+<p>指定了零个方法的接口值被称为 “空接口” ：</p>
+<pre><code class="language-go">interface{}
+</code></pre>
+<p>空接口可以保存任何类型的值（因为每个类型都至少实现了零个方法）。</p>
+<p>空接口可以被用来处理未知类型的值。例如，<code>fmt.Print</code> 可接收类型为 <code>interface{}</code> 的任意数量的参数。</p>
+<pre><code class="language-go">func main() {
+	var i interface{}
+	describe(i) // (&lt;nil&gt;, &lt;nil&gt;)
+
+	i = 42
+	describe(i) // (42, int)
+
+	i = &quot;hello&quot;
+	describe(i) // (hello, string)
+}
+
+func describe(i interface{}) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<h2 id="类型断言">类型断言</h2>
+<p><strong>类型断言</strong> 提供了访问接口值底层具体值的方式：</p>
+<pre><code class="language-go">t := i.(T)
+</code></pre>
+<p>该语句断言接口值 <code>i</code> 保存了具体类型 <code>T</code> ，并将其底层类型为 <code>T</code> 的值赋给变量 <code>t</code> 。</p>
+<p>若 <code>i</code> 并未保存 <code>T</code> 类型的值，该语句就会触发一个 panic 。</p>
+<p>为了 <strong>判断</strong> 一个接口值是否保存了一个特定的类型，类型断言可返回两个值：其底层值以及一个报告断言是否成功的布尔值。</p>
+<pre><code class="language-go">t, ok := i.(T)
+</code></pre>
+<p>若 <code>i</code> 保存了一个 <code>T</code> ，那么 <code>t</code> 将会是其底层值，而 <code>ok</code> 为 <code>true</code> 。</p>
+<p>否则，<code>ok</code> 将为 <code>false</code> ，而 <code>t</code> 将为 <code>T</code> 类型的零值，程序不会产生 panic ，这种语法和读取一个映射很相似。</p>
+<pre><code class="language-go">func main() {
+	var i interface{} = &quot;Hello, world!&quot;
+
+	s := i.(string)
+	fmt.Println(s) // Hello, world!
+
+	s, ok := i.(string)
+	fmt.Println(s, ok) // Hello, world! true
+
+	f, ok := i.(float64)
+	fmt.Println(f, ok) // 0 false
+
+	f = i.(float64) // panic: interface conversion: interface {} is string, not float64
+	fmt.Println(f)
+}
+</code></pre>
+<h2 id="类型选择">类型选择</h2>
+<p><strong>类型选择</strong> 是一种按顺序从几个类型断言中选择分支的结构。</p>
+<p>类型选择与一般的 switch 语句相似，不过类型选择中的 case 为类型（而非值），它们针对给定接口值所存储的值的类型进行比较。</p>
+<pre><code class="language-go">func do(i interface{}) {
+	switch v := i.(type) {
+	case int:
+		fmt.Printf(&quot;Twice %v is %v\n&quot;, v, v*2)
+	case string:
+		fmt.Printf(&quot;%q is %v bytes long\n&quot;, v, len(v))
+	default:
+		fmt.Printf(&quot;I don't know about type %T!\n&quot;, v)
+	}
+}
+
+func main() {
+	do(20) // Twice 20 is 40
+	do(&quot;Hello, world!&quot;) // &quot;Hello, world!&quot; is 13 bytes long
+	do(true) // I don't know about type bool!
+}
+</code></pre>
+<h2 id="应用示例">应用示例</h2>
+<h3 id="stringer">Stringer</h3>
+<p><code>fmt</code> 包中定义的 <code>Stringer</code> 是最普遍的接口之一。</p>
+<pre><code class="language-go">type Stringer interface {
+    String() string
+}
+</code></pre>
+<p><code>Stringer</code> 是一个可以用字符串描述自己的类型。</p>
+<pre><code class="language-go">type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf(&quot;%v (%v years)&quot;, p.Name, p.Age)
+}
+
+func main() {
+	zb := Person{&quot;ZhuBei&quot;, 23}
+	ross := Person{&quot;Ross&quot;, 25}
+	fmt.Println(zb, ross) // ZhuBei (23 years) Ross (25 years)
+}
+</code></pre>
+<h3 id="错误">错误</h3>
+<p>Go 程序使用 <code>error</code> 值来表示错误状态。</p>
+<p>与 <code>fmt.Stringer</code> 类似，<code>error</code> 类型是一个内建接口：</p>
+<pre><code class="language-go">type error interface {
+    Error() string
+}
+</code></pre>
+<p>通常函数会返回一个 <code>error</code> 值，调用它的代码应当判断这个错误是否等于 <code>nil</code> 来进行错误处理。</p>
+<pre><code class="language-go">type ErrNegativeSqrt float64
+
+func (e ErrNegativeSqrt) Error() string {
+	return fmt.Sprintf(&quot;cannot Sqrt negative number: %v&quot;, float64(e))
+}
+
+func Sqrt(x float64) (float64, error) {
+	if x &lt; 0 {
+		return 0, ErrNegativeSqrt(x)
+	}
+	return math.Sqrt(x), nil
+}
+
+func main() {
+	res, err := Sqrt(-10)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Printf(&quot;平方根是：%v&quot;, res)
+	}
+}
+</code></pre>
+<h3 id="reader">Reader</h3>
+<p><code>io</code> 包指定了 <code>io.Reader</code> 接口，它表示从数据流的末尾进行读取。</p>
+<p><code>io.Reader</code> 接口有一个 <code>Read</code> 方法：</p>
+<pre><code class="language-go">func (T) Read(b []byte) (n int, err error)
+</code></pre>
+<p><code>Read</code> 用数据填充给定的字节切片并返回填充的字节数和错误值。在遇到数据流的结尾时，它会返回一个 <code>io.EOF</code> 错误。</p>
+<pre><code class="language-go">func main() {
+	r := strings.NewReader(&quot;Hello, Reader!&quot;)
+
+	b := make([]byte, 8)
+
+	for {
+		n, err := r.Read(b)
+		fmt.Printf(&quot;n = %v, err = %v, b = %v\n&quot;, n, err, b)
+		fmt.Printf(&quot;b[:n] = %q\n&quot;, b[:n])
+		if err == io.EOF {
+			break
+		}
+	}
+}
+
+/*
+	n = 8, err = &lt;nil&gt;, b = [72 101 108 108 111 44 32 82]
+    b[:n] = &quot;Hello, R&quot;
+    n = 6, err = &lt;nil&gt;, b = [101 97 100 101 114 33 32 82]
+    b[:n] = &quot;eader!&quot;
+    n = 0, err = EOF, b = [101 97 100 101 114 33 32 82]
+    b[:n] = &quot;&quot;
+*/
+</code></pre>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#%E6%8E%A5%E5%8F%A3%E4%B8%8E%E9%9A%90%E5%BC%8F%E5%AE%9E%E7%8E%B0">接口与隐式实现</a></li>
+<li><a href="#%E6%8E%A5%E5%8F%A3%E5%80%BC">接口值</a></li>
+<li><a href="#%E5%BA%95%E5%B1%82%E5%80%BC%E4%B8%BA-nil-%E7%9A%84%E6%8E%A5%E5%8F%A3%E5%80%BC">底层值为 <code>nil</code> 的接口值</a></li>
+<li><a href="#nil-%E6%8E%A5%E5%8F%A3%E5%80%BC"><code>nil</code> 接口值</a></li>
+<li><a href="#%E7%A9%BA%E6%8E%A5%E5%8F%A3">空接口</a></li>
+<li><a href="#%E7%B1%BB%E5%9E%8B%E6%96%AD%E8%A8%80">类型断言</a></li>
+<li><a href="#%E7%B1%BB%E5%9E%8B%E9%80%89%E6%8B%A9">类型选择</a></li>
+<li><a href="#%E5%BA%94%E7%94%A8%E7%A4%BA%E4%BE%8B">应用示例</a>
+<ul>
+<li><a href="#stringer">Stringer</a></li>
+<li><a href="#%E9%94%99%E8%AF%AF">错误</a></li>
+<li><a href="#reader">Reader</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://zb980921.github.io/post/go-method/">
+              <h3 class="post-title">
+                方法
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <span><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 2022-PRESENT © ZhuBei <a target="_blank" href="https://beian.miit.gov.cn/" style="margin-left: 10px;">苏ICP备2022011776号-1</a></span>
+  <a class="rss" href="https://zb980921.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

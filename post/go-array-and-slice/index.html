@@ -1,0 +1,318 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>切片和数组 | ZhuBei&#39;s Blog</title>
+<link rel="shortcut icon" href="https://zb980921.github.io/favicon.ico?v=1667284745178">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@2.3.0/fonts/remixicon.css" rel="stylesheet">
+<link rel="stylesheet" href="https://zb980921.github.io/styles/main.css">
+<link rel="alternate" type="application/atom+xml" title="切片和数组 | ZhuBei&#39;s Blog - Atom Feed" href="https://zb980921.github.io/atom.xml">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Droid+Serif:400,700">
+
+
+
+    <meta name="description" content="0、数组
+数据类型定义了长度和元素类型。数组的长度是固定的，长度是数组类型的一部分（[4]int 和 [5]int 是完全不同的类型）。数组可以以常规的索引方式访问，s[n] 访问数组 s 的第 n 个元素。
+var a [4]int
+a[..." />
+    <meta name="keywords" content="go基础" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.10.0/katex.min.css">
+    <script src="//cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.5.1/build/highlight.min.js"></script>
+  </head>
+  <body>
+    <div class="main">
+      <div class="main-content">
+        <div class="site-header">
+  <a href="https://zb980921.github.io">
+  <img class="avatar" src="https://zb980921.github.io/images/avatar.png?v=1667284745178" alt="">
+  </a>
+  <h1 class="site-title">
+    ZhuBei&#39;s Blog
+  </h1>
+  <p class="site-description">
+    Keep coding, keep learning.
+  </p>
+  <div class="menu-container">
+    
+      
+        <a href="/" class="menu">
+          首页
+        </a>
+      
+    
+      
+        <a href="/archives" class="menu">
+          归档
+        </a>
+      
+    
+      
+        <a href="/tags" class="menu">
+          标签
+        </a>
+      
+    
+      
+        <a href="/post/about" class="menu">
+          关于
+        </a>
+      
+    
+  </div>
+  <div class="social-container">
+    
+      
+    
+      
+    
+      
+    
+      
+    
+      
+    
+  </div>
+</div>
+
+        <div class="post-detail">
+          <article class="post">
+            <h2 class="post-title">
+              切片和数组
+            </h2>
+            <div class="post-info">
+              <span>
+                2022-08-16
+              </span>
+              <span>
+                8 min read
+              </span>
+              
+                <a href="https://zb980921.github.io/tag/basic-go/" class="post-tag">
+                  # go基础
+                </a>
+              
+            </div>
+            
+            <div class="post-content-wrapper">
+              <div class="post-content" v-pre>
+                <h2 id="0-数组">0、数组</h2>
+<p>数据类型定义了长度和元素类型。数组的长度是固定的，长度是数组类型的一部分（<code>[4]int</code> 和 <code>[5]int</code> 是完全不同的类型）。数组可以以常规的索引方式访问，<code>s[n]</code> 访问数组 <code>s</code> 的第 <code>n</code> 个元素。</p>
+<pre><code class="language-go">var a [4]int
+a[0] = 1
+i := a[0]
+// i == 1
+</code></pre>
+<p>数组不需要显式地初始化，数组元素会自动初始化为其对应类型的零值：</p>
+<pre><code class="language-go">// a[2] == 0  int 类型的零值
+</code></pre>
+<p>类型 <code>[4]int</code> 对应内存中四个连续的整数：</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-array.png" alt="" loading="lazy"></figure>
+<blockquote>
+<p>Go 的数组是值语义。一个数组变量表示整个数组，它不是指向第一个元素的指针。当一个数组变量被赋值或者被传递时，实际上会复制整个数组。</p>
+<p>为了避免赋值数组，可以传递一个指向数组的指针。</p>
+</blockquote>
+<p>数组的字面值：</p>
+<pre><code class="language-go">b := [2]string{&quot;Hello&quot;, &quot;World&quot;}
+</code></pre>
+<p>也可以让编译器统计数组字面值中元素的数目：</p>
+<pre><code class="language-go">b := [...]string{&quot;Hello&quot;, &quot;World&quot;}
+</code></pre>
+<p>这两种写法，<code>b</code> 都是对应 <code>[2]string</code> 类型。</p>
+<h2 id="1-切片">1、切片</h2>
+<p>切片基于数组构建，提供了更强的功能和便利。</p>
+<p>切片类型的写法是 <code>[]T</code> ，<code>T</code> 是切片元素的类型。和数组不同，切片类型并没有给定固定的长度。</p>
+<p>切片的字面值和数组字面值很像，不过切片没有执行元素的个数：</p>
+<pre><code class="language-go">letters := []string{&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;}
+</code></pre>
+<p>切片可以使用内置函数 <code>make</code> 创建，函数签名为：</p>
+<pre><code class="language-go">func make([]T, len, cap) []T
+</code></pre>
+<p>其中 <code>T</code> 代表被创建的切片元素的类型。函数 <code>make</code> 接受一个类型、一个长度和一个可选的容量参数。</p>
+<p>调用 <code>make</code> 时，内部会分配一个数组，然后返回数组对应的切片。</p>
+<pre><code class="language-go">var s []byte
+s = make([]byte, 5, 5)
+// s == []byte{0, 0, 0, 0, 0}
+</code></pre>
+<p>当容量参数被忽略时，它默认为指定的长度。</p>
+<pre><code class="language-go">s := make([]byte, 5)
+</code></pre>
+<p>可以使用内置函数 <code>len</code> 和 <code>cap</code> 获取切片的长度和容量信息。</p>
+<pre><code class="language-go">len(s) == 5
+cap(s) == 5
+</code></pre>
+<h2 id="2-长度和容量">2、长度和容量</h2>
+<p>切片的零值为 <code>nil</code> 。对于切片的零值，<code>len</code> 和 <code>cap</code> 都将返回 <code>0</code> 。</p>
+<p>切片也可以基于现有的切片或数组生成。切片的范围由两个冒号分割的索引对应的半开区间指定。例如，表达式 <code>b[1:4]</code> 创建的切片引用数组 <code>b</code> 的第 1 到 3 个元素空间（对应切片的索引为 0 到 2）。</p>
+<pre><code class="language-go">b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
+// b[1:4] == []byte{'o', 'l', 'a'}, 和数组 b 共用同一片内存空间
+</code></pre>
+<p>切片的开始和结束的索引都是可选的，分别默认为零和数组的长度。</p>
+<pre><code class="language-go">// b[:2] == []byte{'g', 'o'}   索引为 0、1 的两个元素
+// b[2:] == []byte{'l', 'a', 'n', 'g'}   索引为 2、3、4、5 的四个元素
+// b[:] == b   索引为 0、1、2、3、4、5 的六个元素（全部）
+</code></pre>
+<p>下面的语法也是基于数组创建一个切片：</p>
+<pre><code class="language-go">x := [3]string{&quot;Лайка&quot;, &quot;Белка&quot;, &quot;Стрелка&quot;}
+s := x[:] // a slice referencing the storage of x
+</code></pre>
+<h3 id="21-切片的内幕">2.1、切片的内幕</h3>
+<p>一个切片是一个数组片段的描述。它包含了指向数组的指针，片段的长度，和容量（片段的最大长度）。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-struct.png" alt="" loading="lazy"></figure>
+<p>使用 <code>make([]byte, 5)</code> 创建的切片变量 <code>s</code> 的结构如下：</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-1.png" alt="" loading="lazy"></figure>
+<p>长度是切片引用的元素数目；容量是底层数组的元素数目（从切片指针开始，上图的切片容量为 0 ~ 4，即 5）。</p>
+<p>继续对 <code>s</code> 进行切片：</p>
+<pre><code class="language-go">s = s[2:4]
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-2.png" alt="" loading="lazy"></figure>
+<p>此时，切片指针指向了原数组索引为 2 的元素。所以，切片的容量变成了 <code>3</code> （2、3、4） 。</p>
+<p>切片操作并不复制切片指向的元素。它创建一个新的切片并复用原来切片的底层数组。这使得切片操作和数组索引一样高效。因此，通过一个新的切片修改元素会影响到原始切片的对应元素。</p>
+<pre><code class="language-go">d := []byte{'r', 'o', 'a', 'd'}
+e := d[2:]
+// e == []byte{'a', 'd'}
+e[1] = 'm'
+// e == []byte{'a', 'm'}
+// d == []byte{'r', 'o', 'a', 'm'}
+</code></pre>
+<p>前面创建的切片 <code>s</code> 长度小于容量，我们可以增加切片的长度为它的容量：</p>
+<pre><code class="language-go">s = s[:cap(s)]
+</code></pre>
+<p>切片增长不能超出其容量。增长超出切片容量将会导致运行时异常，就像切片或数组的索引超出范围引起异常一样。同样，不能使用小于零的索引去访问切片之前的元素。</p>
+<h3 id="22-切片的生长copy-和-append">2.2、切片的生长（copy 和 append）</h3>
+<p>要增加切片的容量必须创建一个新的、更大容量的切片，然后将原有切片的内容复制到新的切片。整个技术是一些支持动态数组语言的常见实现。</p>
+<p>下面的例子将切片 <code>s</code> 的容量翻倍：</p>
+<ul>
+<li>先创建一个 2 倍容量的新切片 <code>t</code></li>
+<li>复制 <code>s</code> 的元素到 <code>t</code></li>
+<li>将 <code>t</code> 赋值给 <code>s</code></li>
+</ul>
+<pre><code class="language-go">s := make([]int, 5)
+fmt.Println(s, len(s), cap(s)) // [0 0 0 0 0] 5 5
+
+t := make([]int, len(s), (cap(s)+1)*2) // 进行 +1 操作，防止 s 的容量为 0
+for i := range s {
+    t[i] = s[i]
+}
+s = t
+fmt.Println(s, len(s), cap(s)) // [0 0 0 0 0] 5 12
+</code></pre>
+<p>循环中复制的操作可以由 <code>copy</code> 内置函数代替。它将源切片的元素复制到目的切片，返回复制元素的数组：</p>
+<pre><code class="language-go">func copy(dst, src []T) int
+</code></pre>
+<p><code>copy</code> 函数支持不同长度的切片之间的复制（只复制较短切片的长度个元素）。</p>
+<p>此外。<code>copy</code> 函数可以正确处理源和目的切片有重叠的情况。</p>
+<p>一个常见的操作是将数据追加到切片的尾部。下面的函数将元素追加到切片尾部，必要的话会增加切片的容量，最后返回更新的切片：</p>
+<pre><code class="language-go">func AppendInt(s []int, data ...int) []int {
+	m := len(s)        // 目标切片的长度，即目标切片的元素个数
+	n := m + len(data) // 追加后的元素个数
+	if n &gt; cap(s) {    // 如果追加后的元素个数超出了切片容量，进行扩容
+		newS := make([]int, (n+1)*2)
+		copy(newS, s)
+		s = newS
+	}
+	s = s[0:n]         // 按需切片，不需要 (n+1)*2 ~ n 这一段容量，节省内存
+	copy(s[m:n], data) // 将需要追加的元素赋值给切片对应的位置
+	return s
+}
+</code></pre>
+<p>类似 <code>AppendInt</code> 的函数比较实用，因为它提供了切片容量增长的完全控制。根据程序的特点，可能希望分配较小的或较大的块，或是超过某个大小再分配。</p>
+<p>Go 提供了一个内置函数 <code>append</code> ，用于大多数场合：</p>
+<pre><code class="language-go">func append(s []T, x ...T) []T
+</code></pre>
+<p><code>append</code> 函数将 <code>x</code> 追加到切片 <code>s</code> 的末尾，并且在必要时增加容量。</p>
+<blockquote>
+<p>如果要将一个切片追加到另一个切片的尾部，需要使用 <code>...</code> 语法将第 2 个参数展开为参数列表。</p>
+<pre><code class="language-go">a := []string{&quot;John&quot;, &quot;Paul&quot;}
+b := []string{&quot;George&quot;, &quot;Ringo&quot;, &quot;Pete&quot;}
+a = append(a, b...) // 等价于 &quot;append(a, b[0], b[1], b[2])&quot;
+// a == []string{&quot;John&quot;, &quot;Paul&quot;, &quot;George&quot;, &quot;Ringo&quot;, &quot;Pete&quot;}
+</code></pre>
+</blockquote>
+
+              </div>
+              <div class="toc-container">
+                <ul class="markdownIt-TOC">
+<li>
+<ul>
+<li><a href="#0-%E6%95%B0%E7%BB%84">0、数组</a></li>
+<li><a href="#1-%E5%88%87%E7%89%87">1、切片</a></li>
+<li><a href="#2-%E9%95%BF%E5%BA%A6%E5%92%8C%E5%AE%B9%E9%87%8F">2、长度和容量</a>
+<ul>
+<li><a href="#21-%E5%88%87%E7%89%87%E7%9A%84%E5%86%85%E5%B9%95">2.1、切片的内幕</a></li>
+<li><a href="#22-%E5%88%87%E7%89%87%E7%9A%84%E7%94%9F%E9%95%BFcopy-%E5%92%8C-append">2.2、切片的生长（copy 和 append）</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+              </div>
+            </div>
+          </article>
+        </div>
+
+        
+          <div class="next-post">
+            <div class="next">下一篇</div>
+            <a href="https://zb980921.github.io/post/beautify-zsh/">
+              <h3 class="post-title">
+                zsh美化教程
+              </h3>
+            </a>
+          </div>
+        
+
+        
+
+        <div class="site-footer">
+  <span><a target="_blank" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> 2022-PRESENT © ZhuBei <a target="_blank" href="https://beian.miit.gov.cn/" style="margin-left: 10px;">苏ICP备2022011776号-1</a></span>
+  <a class="rss" href="https://zb980921.github.io/atom.xml" target="_blank">
+    <i class="ri-rss-line"></i> RSS
+  </a>
+</div>
+
+      </div>
+    </div>
+
+    <script>
+      hljs.initHighlightingOnLoad()
+
+      let mainNavLinks = document.querySelectorAll(".markdownIt-TOC a");
+
+      // This should probably be throttled.
+      // Especially because it triggers during smooth scrolling.
+      // https://lodash.com/docs/4.17.10#throttle
+      // You could do like...
+      // window.addEventListener("scroll", () => {
+      //    _.throttle(doThatStuff, 100);
+      // });
+      // Only not doing it here to keep this Pen dependency-free.
+
+      window.addEventListener("scroll", event => {
+        let fromTop = window.scrollY;
+
+        mainNavLinks.forEach((link, index) => {
+          let section = document.getElementById(decodeURI(link.hash).substring(1));
+          let nextSection = null
+          if (mainNavLinks[index + 1]) {
+            nextSection = document.getElementById(decodeURI(mainNavLinks[index + 1].hash).substring(1));
+          }
+          if (section.offsetTop <= fromTop) {
+            if (nextSection) {
+              if (nextSection.offsetTop > fromTop) {
+                link.classList.add("current");
+              } else {
+                link.classList.remove("current");    
+              }
+            } else {
+              link.classList.add("current");
+            }
+          } else {
+            link.classList.remove("current");
+          }
+        });
+      });
+
+    </script>
+  </body>
+</html>

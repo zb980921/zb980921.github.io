@@ -1,0 +1,790 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://zb980921.github.io</id>
+    <title>ZhuBei&apos;s Blog</title>
+    <updated>2022-11-01T06:39:07.574Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://zb980921.github.io"/>
+    <link rel="self" href="https://zb980921.github.io/atom.xml"/>
+    <subtitle>Keep coding, keep learning.</subtitle>
+    <logo>https://zb980921.github.io/images/avatar.png</logo>
+    <icon>https://zb980921.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2022, ZhuBei&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[接口]]></title>
+        <id>https://zb980921.github.io/post/go-interface/</id>
+        <link href="https://zb980921.github.io/post/go-interface/">
+        </link>
+        <updated>2022-08-17T03:02:32.000Z</updated>
+        <content type="html"><![CDATA[<p><strong>接口类型</strong> 是由一组方法签名定义的集合。</p>
+<p>接口类型的变量可以保存任何实现了这些方法的值。</p>
+<pre><code class="language-go">type MyFloat float64
+
+// MyFloat 的 Abs 方法
+func (f MyFloat) Abs() float64 {
+	if f &lt; 0 {
+		return float64(-f)
+	}
+	return float64(f)
+}
+
+// 接口声明
+type Abser interface {
+	Abs() float64
+}
+
+func main() {
+	var a Abser
+	f := MyFloat(-math.Sqrt2)
+	a = f // 因为 MyFloat 实现了 Abs 方法，所以 f 可以赋值给 a
+	fmt.Println(a) // -1.4142135623730951
+}
+</code></pre>
+<h2 id="接口与隐式实现">接口与隐式实现</h2>
+<p>类型通过实现一个接口的所有方法来实现该接口。</p>
+<p>隐式接口从接口的实现中解耦了定义，这样接口的实现可以出现在任何包中，无需提前准备。</p>
+<p>因此，也就无需在每一个实现上增加新的接口名称，这样同时也鼓励了明确的接口定义。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+// 此方法表示类型 T 实现了接口 I (即 T 拥有 M 方法)，但我们无需声明
+func (t T) M() {
+	fmt.Println(t)
+}
+
+func main() {
+	var i I = T{&quot;Hello, world!&quot;}
+	i.M()
+}
+</code></pre>
+<h2 id="接口值">接口值</h2>
+<p>接口也是值。它们可以像其它值一样传递。</p>
+<p>接口值可以用作函数的参数或返回值。</p>
+<p>在内部，接口值可以看做包含值和具体类型的元组：<code>(value, type)</code> 。</p>
+<p>接口值保存了一个具体底层类型的具体值。</p>
+<p>接口值调用方法时会执行其底层类型的同名方法。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+// 注意：这里使用了指针作为接收者
+func (t *T) M() {
+	fmt.Println(t.S)
+}
+
+type F float64
+
+func (f F) M() {
+	fmt.Println(f)
+}
+
+func main() {
+	var i I = &amp;T{&quot;Hello&quot;} // 这里必须写指针，因为上面使用了指针接收者来实现 M 方法
+	describe(i)
+
+	i = F(math.Pi)
+	describe(i)
+}
+
+func describe(i I) {
+	i.M() // 传入不同类型的值，执行对应的 M 方法
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<h2 id="底层值为-nil-的接口值">底层值为 <code>nil</code> 的接口值</h2>
+<p>即便接口内的具体值为 <code>nil</code> ，方法仍然会被 <code>nil</code> 接收者调用，在一些语言中，这会触发一个空指针异常，但在 Go 中通常会写一些方法来优雅地处理它。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+type T struct {
+	S string
+}
+
+func (t *T) M() {
+	if t == nil {
+		fmt.Println(&quot;&lt;nil&gt;&quot;)
+		return
+	}
+	fmt.Println(t.S)
+}
+
+func main() {
+	var i I
+	var t *T
+	i = t
+	describe(i) // (&lt;nil&gt;, *main.T)
+    i.M()
+
+	i = &amp;T{&quot;Hello, world!&quot;}
+    describe(i) // (&amp;{Hello, world!}, *main.T)
+    i.M()
+}
+
+func describe(i I) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<blockquote>
+<p>注意：</p>
+<p>保存了 <code>nil</code> 具体值的接口，其自身并不为 <code>nil</code> 。</p>
+</blockquote>
+<h2 id="nil-接口值"><code>nil</code> 接口值</h2>
+<p><code>nil</code> 接口值既不保存值也不保存具体类型。</p>
+<p>为 <code>nil</code> 接口调用方法会产生运行时错误，因为接口的元组内并未包含能够指明该调用哪个 <strong>具体</strong> 方法的类型。</p>
+<pre><code class="language-go">type I interface {
+	M()
+}
+
+func main() {
+	var i I
+	describe(i)
+	i.M() // runtime error: invalid memory address or nil pointer dereference
+}
+
+func describe(i I) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i) // (&lt;nil&gt;, &lt;nil&gt;)
+}
+</code></pre>
+<h2 id="空接口">空接口</h2>
+<p>指定了零个方法的接口值被称为 “空接口” ：</p>
+<pre><code class="language-go">interface{}
+</code></pre>
+<p>空接口可以保存任何类型的值（因为每个类型都至少实现了零个方法）。</p>
+<p>空接口可以被用来处理未知类型的值。例如，<code>fmt.Print</code> 可接收类型为 <code>interface{}</code> 的任意数量的参数。</p>
+<pre><code class="language-go">func main() {
+	var i interface{}
+	describe(i) // (&lt;nil&gt;, &lt;nil&gt;)
+
+	i = 42
+	describe(i) // (42, int)
+
+	i = &quot;hello&quot;
+	describe(i) // (hello, string)
+}
+
+func describe(i interface{}) {
+	fmt.Printf(&quot;(%v, %T)\n&quot;, i, i)
+}
+</code></pre>
+<h2 id="类型断言">类型断言</h2>
+<p><strong>类型断言</strong> 提供了访问接口值底层具体值的方式：</p>
+<pre><code class="language-go">t := i.(T)
+</code></pre>
+<p>该语句断言接口值 <code>i</code> 保存了具体类型 <code>T</code> ，并将其底层类型为 <code>T</code> 的值赋给变量 <code>t</code> 。</p>
+<p>若 <code>i</code> 并未保存 <code>T</code> 类型的值，该语句就会触发一个 panic 。</p>
+<p>为了 <strong>判断</strong> 一个接口值是否保存了一个特定的类型，类型断言可返回两个值：其底层值以及一个报告断言是否成功的布尔值。</p>
+<pre><code class="language-go">t, ok := i.(T)
+</code></pre>
+<p>若 <code>i</code> 保存了一个 <code>T</code> ，那么 <code>t</code> 将会是其底层值，而 <code>ok</code> 为 <code>true</code> 。</p>
+<p>否则，<code>ok</code> 将为 <code>false</code> ，而 <code>t</code> 将为 <code>T</code> 类型的零值，程序不会产生 panic ，这种语法和读取一个映射很相似。</p>
+<pre><code class="language-go">func main() {
+	var i interface{} = &quot;Hello, world!&quot;
+
+	s := i.(string)
+	fmt.Println(s) // Hello, world!
+
+	s, ok := i.(string)
+	fmt.Println(s, ok) // Hello, world! true
+
+	f, ok := i.(float64)
+	fmt.Println(f, ok) // 0 false
+
+	f = i.(float64) // panic: interface conversion: interface {} is string, not float64
+	fmt.Println(f)
+}
+</code></pre>
+<h2 id="类型选择">类型选择</h2>
+<p><strong>类型选择</strong> 是一种按顺序从几个类型断言中选择分支的结构。</p>
+<p>类型选择与一般的 switch 语句相似，不过类型选择中的 case 为类型（而非值），它们针对给定接口值所存储的值的类型进行比较。</p>
+<pre><code class="language-go">func do(i interface{}) {
+	switch v := i.(type) {
+	case int:
+		fmt.Printf(&quot;Twice %v is %v\n&quot;, v, v*2)
+	case string:
+		fmt.Printf(&quot;%q is %v bytes long\n&quot;, v, len(v))
+	default:
+		fmt.Printf(&quot;I don't know about type %T!\n&quot;, v)
+	}
+}
+
+func main() {
+	do(20) // Twice 20 is 40
+	do(&quot;Hello, world!&quot;) // &quot;Hello, world!&quot; is 13 bytes long
+	do(true) // I don't know about type bool!
+}
+</code></pre>
+<h2 id="应用示例">应用示例</h2>
+<h3 id="stringer">Stringer</h3>
+<p><code>fmt</code> 包中定义的 <code>Stringer</code> 是最普遍的接口之一。</p>
+<pre><code class="language-go">type Stringer interface {
+    String() string
+}
+</code></pre>
+<p><code>Stringer</code> 是一个可以用字符串描述自己的类型。</p>
+<pre><code class="language-go">type Person struct {
+	Name string
+	Age  int
+}
+
+func (p Person) String() string {
+	return fmt.Sprintf(&quot;%v (%v years)&quot;, p.Name, p.Age)
+}
+
+func main() {
+	zb := Person{&quot;ZhuBei&quot;, 23}
+	ross := Person{&quot;Ross&quot;, 25}
+	fmt.Println(zb, ross) // ZhuBei (23 years) Ross (25 years)
+}
+</code></pre>
+<h3 id="错误">错误</h3>
+<p>Go 程序使用 <code>error</code> 值来表示错误状态。</p>
+<p>与 <code>fmt.Stringer</code> 类似，<code>error</code> 类型是一个内建接口：</p>
+<pre><code class="language-go">type error interface {
+    Error() string
+}
+</code></pre>
+<p>通常函数会返回一个 <code>error</code> 值，调用它的代码应当判断这个错误是否等于 <code>nil</code> 来进行错误处理。</p>
+<pre><code class="language-go">type ErrNegativeSqrt float64
+
+func (e ErrNegativeSqrt) Error() string {
+	return fmt.Sprintf(&quot;cannot Sqrt negative number: %v&quot;, float64(e))
+}
+
+func Sqrt(x float64) (float64, error) {
+	if x &lt; 0 {
+		return 0, ErrNegativeSqrt(x)
+	}
+	return math.Sqrt(x), nil
+}
+
+func main() {
+	res, err := Sqrt(-10)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Printf(&quot;平方根是：%v&quot;, res)
+	}
+}
+</code></pre>
+<h3 id="reader">Reader</h3>
+<p><code>io</code> 包指定了 <code>io.Reader</code> 接口，它表示从数据流的末尾进行读取。</p>
+<p><code>io.Reader</code> 接口有一个 <code>Read</code> 方法：</p>
+<pre><code class="language-go">func (T) Read(b []byte) (n int, err error)
+</code></pre>
+<p><code>Read</code> 用数据填充给定的字节切片并返回填充的字节数和错误值。在遇到数据流的结尾时，它会返回一个 <code>io.EOF</code> 错误。</p>
+<pre><code class="language-go">func main() {
+	r := strings.NewReader(&quot;Hello, Reader!&quot;)
+
+	b := make([]byte, 8)
+
+	for {
+		n, err := r.Read(b)
+		fmt.Printf(&quot;n = %v, err = %v, b = %v\n&quot;, n, err, b)
+		fmt.Printf(&quot;b[:n] = %q\n&quot;, b[:n])
+		if err == io.EOF {
+			break
+		}
+	}
+}
+
+/*
+	n = 8, err = &lt;nil&gt;, b = [72 101 108 108 111 44 32 82]
+    b[:n] = &quot;Hello, R&quot;
+    n = 6, err = &lt;nil&gt;, b = [101 97 100 101 114 33 32 82]
+    b[:n] = &quot;eader!&quot;
+    n = 0, err = EOF, b = [101 97 100 101 114 33 32 82]
+    b[:n] = &quot;&quot;
+*/
+</code></pre>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[方法]]></title>
+        <id>https://zb980921.github.io/post/go-method/</id>
+        <link href="https://zb980921.github.io/post/go-method/">
+        </link>
+        <updated>2022-08-16T12:29:59.000Z</updated>
+        <content type="html"><![CDATA[<p>Go 没有类。但是你可以为结构体类型定义方法。</p>
+<p>方法就是一类带特殊的 <strong>接收者</strong> 参数的函数。</p>
+<p>方法接收者写在 <code>func</code> 关键字和方法名之间：</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+// p 是 Abs 方法的接收者
+func (p Point) Abs() float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func main() {
+	v := Point{3, 4}
+	fmt.Println(v.Abs()) // 5
+}
+</code></pre>
+<h2 id="方法即函数">方法即函数</h2>
+<p>记住：方法只是个带接收者参数的函数。</p>
+<p>下面这个 <code>Abs</code> 的写法就是个普通的函数，功能并没有什么变化：</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func Abs(p Point) float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func main() {
+	v := Point{3, 4}
+	fmt.Println(Abs(v))
+}
+</code></pre>
+<h2 id="非结构体的方法">非结构体的方法</h2>
+<p>你也可以为非结构体类型声明方法：</p>
+<pre><code class="language-go">type MyFloat float64
+
+func (f MyFloat) Abs() float64 {
+	if f &lt; 0 {
+		return float64(-f)
+	}
+	return float64(f)
+}
+
+func main() {
+	f := MyFloat(-math.Sqrt(2))
+	fmt.Println(f.Abs())
+}
+</code></pre>
+<blockquote>
+<p>注意：</p>
+<ul>
+<li>接收者的类型定义和方法声明必须在同一包内；</li>
+<li>不能为内建类型声明方法。</li>
+</ul>
+</blockquote>
+<h2 id="指针接收者">指针接收者</h2>
+<p>你可以为指针接收者声明方法。这意味着对于某类型 <code>T</code> ，接收者的类型可以用 <code>*T</code> 的文法（<code>T</code> 不能是像 <code>*int</code> 这样的指针）。</p>
+<p>指针接收者的方法可以修改接收者指向的值（比如下面代码的 <code>Scale</code> 方法）。</p>
+<p>由于方法经常需要修改它的接收者，指针接收者比值接收者更常用。</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func (p Point) Abs() float64 {
+	return math.Sqrt(p.X*p.X + p.Y*p.Y)
+}
+
+func (p *Point) Scale(f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func main() {
+	p := Point{3, 4}
+	fmt.Println(p.Abs()) // 5
+	p.Scale(10)
+	fmt.Println(p.Abs()) // 50
+}
+</code></pre>
+<p>如果使用值接收者（移除 <code>Scale</code> 方法的 <code>*</code>），那么 <code>Scale</code> 方法会对原始 <code>Point</code> 值的副本进行操作。因此，<code>Scale</code> 方法必须使用指针接收者来更改 <code>main</code> 函数中声明的 <code>Point</code> 的值。</p>
+<h2 id="方法与指针重定向">方法与指针重定向</h2>
+<p>以指针为接收者的方法被调用时，接收者既能为值又能为指针：</p>
+<pre><code class="language-go">var p Point
+p.Scale(5) // ok
+ptr := &amp;p
+ptr.Scale(10) // ok
+</code></pre>
+<p>对于语句 <code>p.Scale(5)</code> ，即便 <code>p</code> 是个值而非指针，带指针接收者的方法也能被直接调用。</p>
+<p>由于 <code>Scale</code> 方法有一个指针接收者，为方便起见，Go 会将语句 <code>p.Scale(5)</code> 解释为 <code>(&amp;p).Scale(5)</code> 。</p>
+<pre><code class="language-go">type Point struct {
+	X, Y float64
+}
+
+func (p *Point) Scale(f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func ScaleFn(p *Point, f float64) {
+	p.X = p.X * f
+	p.Y = p.Y * f
+}
+
+func main() {
+	p1 := Point{3, 4}
+    p1.Scale(2) // 解释为 (&amp;p1).Scale(2)
+	ScaleFn(&amp;p1, 5)
+	fmt.Println(p1) // {30 40}
+
+	p2 := &amp;Point{30, 40}
+	p2.Scale(0.2)
+	ScaleFn(p2, 0.5)
+	fmt.Println(*p2) // {3 4}
+}
+</code></pre>
+<p>同样的事情也发生在相反的方向。</p>
+<p>接收一个值作为参数的函数必须接收一个指定类型的值：</p>
+<pre><code class="language-go">type Vertex struct {
+	X, Y float64
+}
+
+func (v *Vertex) Abs() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func AbsFn(v Vertex) float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func main() {
+    var v Vertex
+    AbsFn(v) // ok
+    AbsFn(&amp;v) // 编译错误！
+}
+</code></pre>
+<p>而以值为接收者的方法被调用时，接收者既能为值又能为指针：</p>
+<pre><code class="language-go">// 该方法以值作为接收者
+func (v Vertex) Abs() float64 {
+	return math.Sqrt(v.X*v.X + v.Y*v.Y)
+}
+
+func main() {
+	v := Vertex{30, 40}
+	fmt.Println(v.Abs()) // 50
+	ptr := &amp;v
+    fmt.Println(ptr.Abs()) // 50, 被解释为 (*pt).Abs()
+}
+</code></pre>
+<h2 id="选择值或指针作为接收者">选择值或指针作为接收者</h2>
+<p>使用指针作为接收值的原因：</p>
+<ul>
+<li>方法能够修改其接收者指向的值</li>
+<li>避免在每次调用方法时复制该值。若值的类型为大型结构体时，这样做会更加高效。</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[切片和数组]]></title>
+        <id>https://zb980921.github.io/post/go-array-and-slice/</id>
+        <link href="https://zb980921.github.io/post/go-array-and-slice/">
+        </link>
+        <updated>2022-08-16T09:35:56.000Z</updated>
+        <content type="html"><![CDATA[<h2 id="0-数组">0、数组</h2>
+<p>数据类型定义了长度和元素类型。数组的长度是固定的，长度是数组类型的一部分（<code>[4]int</code> 和 <code>[5]int</code> 是完全不同的类型）。数组可以以常规的索引方式访问，<code>s[n]</code> 访问数组 <code>s</code> 的第 <code>n</code> 个元素。</p>
+<pre><code class="language-go">var a [4]int
+a[0] = 1
+i := a[0]
+// i == 1
+</code></pre>
+<p>数组不需要显式地初始化，数组元素会自动初始化为其对应类型的零值：</p>
+<pre><code class="language-go">// a[2] == 0  int 类型的零值
+</code></pre>
+<p>类型 <code>[4]int</code> 对应内存中四个连续的整数：</p>
+<figure data-type="image" tabindex="1"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-array.png" alt="" loading="lazy"></figure>
+<blockquote>
+<p>Go 的数组是值语义。一个数组变量表示整个数组，它不是指向第一个元素的指针。当一个数组变量被赋值或者被传递时，实际上会复制整个数组。</p>
+<p>为了避免赋值数组，可以传递一个指向数组的指针。</p>
+</blockquote>
+<p>数组的字面值：</p>
+<pre><code class="language-go">b := [2]string{&quot;Hello&quot;, &quot;World&quot;}
+</code></pre>
+<p>也可以让编译器统计数组字面值中元素的数目：</p>
+<pre><code class="language-go">b := [...]string{&quot;Hello&quot;, &quot;World&quot;}
+</code></pre>
+<p>这两种写法，<code>b</code> 都是对应 <code>[2]string</code> 类型。</p>
+<h2 id="1-切片">1、切片</h2>
+<p>切片基于数组构建，提供了更强的功能和便利。</p>
+<p>切片类型的写法是 <code>[]T</code> ，<code>T</code> 是切片元素的类型。和数组不同，切片类型并没有给定固定的长度。</p>
+<p>切片的字面值和数组字面值很像，不过切片没有执行元素的个数：</p>
+<pre><code class="language-go">letters := []string{&quot;a&quot;, &quot;b&quot;, &quot;c&quot;, &quot;d&quot;, &quot;e&quot;}
+</code></pre>
+<p>切片可以使用内置函数 <code>make</code> 创建，函数签名为：</p>
+<pre><code class="language-go">func make([]T, len, cap) []T
+</code></pre>
+<p>其中 <code>T</code> 代表被创建的切片元素的类型。函数 <code>make</code> 接受一个类型、一个长度和一个可选的容量参数。</p>
+<p>调用 <code>make</code> 时，内部会分配一个数组，然后返回数组对应的切片。</p>
+<pre><code class="language-go">var s []byte
+s = make([]byte, 5, 5)
+// s == []byte{0, 0, 0, 0, 0}
+</code></pre>
+<p>当容量参数被忽略时，它默认为指定的长度。</p>
+<pre><code class="language-go">s := make([]byte, 5)
+</code></pre>
+<p>可以使用内置函数 <code>len</code> 和 <code>cap</code> 获取切片的长度和容量信息。</p>
+<pre><code class="language-go">len(s) == 5
+cap(s) == 5
+</code></pre>
+<h2 id="2-长度和容量">2、长度和容量</h2>
+<p>切片的零值为 <code>nil</code> 。对于切片的零值，<code>len</code> 和 <code>cap</code> 都将返回 <code>0</code> 。</p>
+<p>切片也可以基于现有的切片或数组生成。切片的范围由两个冒号分割的索引对应的半开区间指定。例如，表达式 <code>b[1:4]</code> 创建的切片引用数组 <code>b</code> 的第 1 到 3 个元素空间（对应切片的索引为 0 到 2）。</p>
+<pre><code class="language-go">b := []byte{'g', 'o', 'l', 'a', 'n', 'g'}
+// b[1:4] == []byte{'o', 'l', 'a'}, 和数组 b 共用同一片内存空间
+</code></pre>
+<p>切片的开始和结束的索引都是可选的，分别默认为零和数组的长度。</p>
+<pre><code class="language-go">// b[:2] == []byte{'g', 'o'}   索引为 0、1 的两个元素
+// b[2:] == []byte{'l', 'a', 'n', 'g'}   索引为 2、3、4、5 的四个元素
+// b[:] == b   索引为 0、1、2、3、4、5 的六个元素（全部）
+</code></pre>
+<p>下面的语法也是基于数组创建一个切片：</p>
+<pre><code class="language-go">x := [3]string{&quot;Лайка&quot;, &quot;Белка&quot;, &quot;Стрелка&quot;}
+s := x[:] // a slice referencing the storage of x
+</code></pre>
+<h3 id="21-切片的内幕">2.1、切片的内幕</h3>
+<p>一个切片是一个数组片段的描述。它包含了指向数组的指针，片段的长度，和容量（片段的最大长度）。</p>
+<figure data-type="image" tabindex="2"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-struct.png" alt="" loading="lazy"></figure>
+<p>使用 <code>make([]byte, 5)</code> 创建的切片变量 <code>s</code> 的结构如下：</p>
+<figure data-type="image" tabindex="3"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-1.png" alt="" loading="lazy"></figure>
+<p>长度是切片引用的元素数目；容量是底层数组的元素数目（从切片指针开始，上图的切片容量为 0 ~ 4，即 5）。</p>
+<p>继续对 <code>s</code> 进行切片：</p>
+<pre><code class="language-go">s = s[2:4]
+</code></pre>
+<figure data-type="image" tabindex="4"><img src="https://blog.go-zh.org/go-slices-usage-and-internals_slice-2.png" alt="" loading="lazy"></figure>
+<p>此时，切片指针指向了原数组索引为 2 的元素。所以，切片的容量变成了 <code>3</code> （2、3、4） 。</p>
+<p>切片操作并不复制切片指向的元素。它创建一个新的切片并复用原来切片的底层数组。这使得切片操作和数组索引一样高效。因此，通过一个新的切片修改元素会影响到原始切片的对应元素。</p>
+<pre><code class="language-go">d := []byte{'r', 'o', 'a', 'd'}
+e := d[2:]
+// e == []byte{'a', 'd'}
+e[1] = 'm'
+// e == []byte{'a', 'm'}
+// d == []byte{'r', 'o', 'a', 'm'}
+</code></pre>
+<p>前面创建的切片 <code>s</code> 长度小于容量，我们可以增加切片的长度为它的容量：</p>
+<pre><code class="language-go">s = s[:cap(s)]
+</code></pre>
+<p>切片增长不能超出其容量。增长超出切片容量将会导致运行时异常，就像切片或数组的索引超出范围引起异常一样。同样，不能使用小于零的索引去访问切片之前的元素。</p>
+<h3 id="22-切片的生长copy-和-append">2.2、切片的生长（copy 和 append）</h3>
+<p>要增加切片的容量必须创建一个新的、更大容量的切片，然后将原有切片的内容复制到新的切片。整个技术是一些支持动态数组语言的常见实现。</p>
+<p>下面的例子将切片 <code>s</code> 的容量翻倍：</p>
+<ul>
+<li>先创建一个 2 倍容量的新切片 <code>t</code></li>
+<li>复制 <code>s</code> 的元素到 <code>t</code></li>
+<li>将 <code>t</code> 赋值给 <code>s</code></li>
+</ul>
+<pre><code class="language-go">s := make([]int, 5)
+fmt.Println(s, len(s), cap(s)) // [0 0 0 0 0] 5 5
+
+t := make([]int, len(s), (cap(s)+1)*2) // 进行 +1 操作，防止 s 的容量为 0
+for i := range s {
+    t[i] = s[i]
+}
+s = t
+fmt.Println(s, len(s), cap(s)) // [0 0 0 0 0] 5 12
+</code></pre>
+<p>循环中复制的操作可以由 <code>copy</code> 内置函数代替。它将源切片的元素复制到目的切片，返回复制元素的数组：</p>
+<pre><code class="language-go">func copy(dst, src []T) int
+</code></pre>
+<p><code>copy</code> 函数支持不同长度的切片之间的复制（只复制较短切片的长度个元素）。</p>
+<p>此外。<code>copy</code> 函数可以正确处理源和目的切片有重叠的情况。</p>
+<p>一个常见的操作是将数据追加到切片的尾部。下面的函数将元素追加到切片尾部，必要的话会增加切片的容量，最后返回更新的切片：</p>
+<pre><code class="language-go">func AppendInt(s []int, data ...int) []int {
+	m := len(s)        // 目标切片的长度，即目标切片的元素个数
+	n := m + len(data) // 追加后的元素个数
+	if n &gt; cap(s) {    // 如果追加后的元素个数超出了切片容量，进行扩容
+		newS := make([]int, (n+1)*2)
+		copy(newS, s)
+		s = newS
+	}
+	s = s[0:n]         // 按需切片，不需要 (n+1)*2 ~ n 这一段容量，节省内存
+	copy(s[m:n], data) // 将需要追加的元素赋值给切片对应的位置
+	return s
+}
+</code></pre>
+<p>类似 <code>AppendInt</code> 的函数比较实用，因为它提供了切片容量增长的完全控制。根据程序的特点，可能希望分配较小的或较大的块，或是超过某个大小再分配。</p>
+<p>Go 提供了一个内置函数 <code>append</code> ，用于大多数场合：</p>
+<pre><code class="language-go">func append(s []T, x ...T) []T
+</code></pre>
+<p><code>append</code> 函数将 <code>x</code> 追加到切片 <code>s</code> 的末尾，并且在必要时增加容量。</p>
+<blockquote>
+<p>如果要将一个切片追加到另一个切片的尾部，需要使用 <code>...</code> 语法将第 2 个参数展开为参数列表。</p>
+<pre><code class="language-go">a := []string{&quot;John&quot;, &quot;Paul&quot;}
+b := []string{&quot;George&quot;, &quot;Ringo&quot;, &quot;Pete&quot;}
+a = append(a, b...) // 等价于 &quot;append(a, b[0], b[1], b[2])&quot;
+// a == []string{&quot;John&quot;, &quot;Paul&quot;, &quot;George&quot;, &quot;Ringo&quot;, &quot;Pete&quot;}
+</code></pre>
+</blockquote>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[zsh美化教程]]></title>
+        <id>https://zb980921.github.io/post/beautify-zsh/</id>
+        <link href="https://zb980921.github.io/post/beautify-zsh/">
+        </link>
+        <updated>2022-07-26T09:03:21.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>本文参考了少数派的文章：<a href="https://sspai.com/post/63241" target="_blank">iTerm2 配置和美化</a> ，感谢！</p>
+<p>多一句：iTerm2 可以不用了，强烈推荐 21 世纪的强大终端 <a href="https://warp.dev" target="_blank">Warp</a> ，用了都说好！</p>
+</blockquote>
+<p>身边好多同事都换了 Macbook，在这里写一篇 zsh 美化教程，方便他人，同时也方便自己。</p>
+<p>本文的所有操作都使用了 🪜 作为辅助，否则会遇到很多网络问题。</p>
+<p>所有的安装步骤都在当前用户目录下进行，使用 <code>pwd</code> 命令进行检查，如果输出的不是 <code>/Users/xxx</code> ，使用 <code>cd ~</code> 进行切换后继续。</p>
+<p>安装 <code>autojump</code> 插件之前，需要安装 Homebrew ，未安装的小伙伴可以输入以下命令进行安装：</p>
+<pre><code class="language-bash">/bin/zsh -c &quot;$(curl -fsSL https://gitee.com/cunkai/HomebrewCN/raw/master/Homebrew.sh)&quot;
+</code></pre>
+<p>安装过程会提示你输入密码，正常输入即可；提示选择镜像源时默认选 <code>中科大</code> 就行。</p>
+<h2 id="一-安装-oh-my-zsh">一、安装 Oh My Zsh</h2>
+<blockquote>
+<p>问：什么是 <code>Oh My Zsh</code> ？</p>
+<p>答：<code>Oh My Zsh</code> 是一款社区驱动的命令行工具，它基于 zsh 命令行，提供了主题配置，插件机制，大大提高了可玩（用）性，提升效率的同时还能使人心情愉悦~</p>
+</blockquote>
+<p>有两种安装方式：</p>
+<ul>
+<li>
+<p>curl</p>
+<pre><code class="language-bash">sh -c &quot;$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)&quot;
+</code></pre>
+</li>
+<li>
+<p>wget</p>
+<pre><code class="language-bash">sh -c &quot;$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)&quot;
+</code></pre>
+</li>
+</ul>
+<p>安装完毕后，会将用户目录下的 <code>.zshrc</code> 文件替换为 <code>oh-my-zsh</code> 自带的默认内容，之前的文件内容被放进了 <code>.zshrc.pre-oh-my-zsh</code> 里面，如果需要同步内容，在 <code>.zshrc</code> 文件最底部，输入 <code>source ~/.zshrc.pre-oh-my-zsh</code> ，重新进入终端即可。</p>
+<h2 id="二-主题">二、主题</h2>
+<p>本文使用的主题是 spaceship 。</p>
+<h3 id="1-安装">1. 安装</h3>
+<ul>
+<li>
+<p>下载主题文件</p>
+<pre><code class="language-bash">git clone https://github.com/denysdovhan/spaceship-prompt.git &quot;$ZSH_CUSTOM/themes/spaceship-prompt&quot; --depth=1
+</code></pre>
+</li>
+<li>
+<p>创建软链接</p>
+<pre><code class="language-bash">ln -s &quot;$ZSH_CUSTOM/themes/spaceship-prompt/spaceship.zsh-theme&quot; &quot;$ZSH_CUSTOM/themes/spaceship.zsh-theme&quot;
+</code></pre>
+</li>
+<li>
+<p>修改 <code>.zshrc</code></p>
+<ul>
+<li>将 <code>ZSH_THEME</code> 变量的值修改成 <code>spaceship</code></li>
+<li>另起一行，输入 <code>SPACESHIP_TIME_SHOW=&quot;true&quot;</code> ，显示时间</li>
+<li>另起一行，输入 <code>SPACESHIP_USER_SHOW=&quot;always&quot;</code> ，显示用户名</li>
+<li>另起一行，输入 <code>SPACESHIP_USER_COLOR=&quot;212&quot;</code> ，猛男粉配色</li>
+</ul>
+</li>
+</ul>
+<p>效果如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://s2.loli.net/2022/07/26/PtCQ1vwhcUyfRN9.png" alt="image.png" loading="lazy"></figure>
+<h2 id="三-配置插件">三、配置插件</h2>
+<p><code>oh-my-zsh</code> 默认为我们集成了 <code>git</code> 插件，这里我们多安装两个插件，赋予终端更强大的功能。</p>
+<h3 id="1-autojump">1. autojump</h3>
+<blockquote>
+<p>这个插件会根据你输入的关键字进行目录联想，假设在某一时刻进入过 <code>~/work/test</code> 目录。当你在终端输入 <code>j te</code> 时，插件会进行联想，匹配到 <code>~/work/test</code> 目录，然后进入。</p>
+<p>如果没匹配到，则停留在当前目录。</p>
+</blockquote>
+<ul>
+<li>
+<p>安装</p>
+<pre><code class="language-bash">brew install autojump
+</code></pre>
+</li>
+<li>
+<p>修改 <code>.zshrc</code> ，在尾部添加内容：</p>
+<pre><code class="language-bash">[ -f /opt/homebrew/etc/profile.d/autojump.sh ] &amp;&amp; . /opt/homebrew/etc/profile.d/autojump.sh
+</code></pre>
+</li>
+<li>
+<p>在 <code>plugins</code> 中添加 <code>autojump</code></p>
+</li>
+</ul>
+<h3 id="2-zsh-autosuggestions">2. zsh-autosuggestions</h3>
+<blockquote>
+<p>当我们输入命令过程中，终端会自动提示你接下来可能要输入的命令，这时按下方向右键 <code>→</code> 便可输出这些命令，非常方便。</p>
+</blockquote>
+<ul>
+<li>
+<p>克隆项目</p>
+<pre><code class="language-bash">git clone https://github.com/zsh-users/zsh-autosuggestions ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+</code></pre>
+</li>
+<li>
+<p>编辑 <code>.zshrc</code> ，将 <code>zsh-autosuggestions</code> 添加到 <code>plugins</code> 中</p>
+</li>
+<li>
+<p>重新进入终端</p>
+</li>
+</ul>
+<blockquote>
+<p>📢</p>
+<p>这些操作执行完毕后，<code>.zshrc</code> 中的 <code>plugins</code> 应该多了两个。</p>
+<p>现在，<code>plugins</code> 看起来应该是这样的：</p>
+<pre><code class="language-bash">plugins=(
+  git
+  zsh-autosuggestions
+  autojump
+)
+</code></pre>
+</blockquote>
+<h2 id="四-总结">四、总结</h2>
+<p>开始装逼吧 😎</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[TS手册（一）]]></title>
+        <id>https://zb980921.github.io/post/ts-handbook-1/</id>
+        <link href="https://zb980921.github.io/post/ts-handbook-1/">
+        </link>
+        <updated>2022-07-26T07:24:43.000Z</updated>
+        <content type="html"><![CDATA[<p>欢迎来到第一章！</p>
+<h2 id="前言">前言</h2>
+<p>在第一章的开始，请思考以下代码：</p>
+<pre><code class="language-javascript">message.toLowerCase();
+message();
+</code></pre>
+<p>我们将上述代码进行拆分，可以拆成两步：</p>
+<ol>
+<li>访问 <code>message</code> 上的 <code>toLowerCase</code> 属性，并调用</li>
+<li>直接调用 <code>message</code></li>
+</ol>
+<p>问题来了，大多数情况下我们不知道 <code>message</code> 的值是什么，因此不能确定上面两行代码每次执行的结果。关于上面的步骤，有以下几个问题需要讨论：</p>
+<ul>
+<li><code>message</code> 是可调用的吗？</li>
+<li><code>message</code> 上有没有一个叫作 <code>toLowerCase</code> 的属性？</li>
+<li>如果存在该属性，那么 <code>toLowerCase</code> 是可调用的吗？</li>
+<li>如果都是可调用的，那么调用它们的返回值是什么呢？</li>
+</ul>
+<p>当书写 JavaScript 代码时，上面几个问题需要我们时刻注意，否则一不小心就会导致运行时的 Error。</p>
+<p>例如：给 <code>message</code> 赋一个字符串的值</p>
+<pre><code class="language-javascript">message = &quot;Hello, World!&quot;
+</code></pre>
+<p>现在运行最开始的两行代码，学过 JavaScript 的都知道，每一个字符串都有 <code>toLowerCase</code> 方法，因此第一行代码正常执行，返回值为 <code>hello, world!</code>。</p>
+<p>但是，当执行到第二行代码的时候，问题来了，<code>message</code> 是一个字符串，压根不是一个函数，因此第二行代码执行时将会得到一个 Error：<code>TypeError: message is not a function</code>。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[关于]]></title>
+        <id>https://zb980921.github.io/post/about/</id>
+        <link href="https://zb980921.github.io/post/about/">
+        </link>
+        <updated>2022-03-01T11:09:48.000Z</updated>
+        <content type="html"><![CDATA[<blockquote>
+<p>Welcome, my homie! 👬🏻</p>
+</blockquote>
+<h2 id="关于本站">🏠 关于本站</h2>
+<p>分享一些技术、生活上的东西。</p>
+<h2 id="博主是谁">👨‍💻 博主是谁</h2>
+<p>朱备，男，98 年生人，处女座，强迫症患者，现在南京工作生活。</p>
+<h2 id="兴趣爱好">⛹ 兴趣爱好</h2>
+<ul>
+<li>唱歌 🎤</li>
+<li>电影 🎬</li>
+<li>骑车 🚴</li>
+<li>数码 💻</li>
+</ul>
+<h2 id="联系我呀">📬 联系我呀</h2>
+<h3 id="邮箱">邮箱</h3>
+<p><a href="mailto://pig199881@qq.com">pig199881@qq.com</a></p>
+<h3 id="qq-or-微信">QQ or 微信</h3>
+<p><img src="https://s2.loli.net/2022/07/26/QvamBGpjte9kXPu.jpg" style="width: 300px; display: inline-block;" ><img src="https://s2.loli.net/2022/07/26/LIxF9ZNPB4XVnYE.jpg" style="width:300px;display: inline-block;" ></p>
+]]></content>
+    </entry>
+</feed>
